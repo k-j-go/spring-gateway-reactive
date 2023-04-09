@@ -26,7 +26,8 @@ public class RouteConfig {
 
     }
 
-    public interface SessionPlayFilter extends UnaryOperator<GatewayFilterSpec> {}
+    public interface SessionPlayFilter extends UnaryOperator<GatewayFilterSpec> {
+    }
 
     @Autowired
     MyFilters myFilters;
@@ -37,7 +38,7 @@ public class RouteConfig {
     @Autowired
     SessionPlayFilter sessionPlayFilter;
 
-    UnaryOperator<GatewayFilterSpec> changeHttpBin = spec -> {
+    UnaryOperator<GatewayFilterSpec> modififyResponseFromHttpBin = spec -> {
         return spec.modifyResponseBody(String.class, String.class, MediaType.APPLICATION_JSON_VALUE, (ex, str) -> {
             if (ex.getResponse()
                     .getStatusCode()
@@ -48,12 +49,11 @@ public class RouteConfig {
         });
     };
 
-
     @Bean
     public RouteLocator routeLocatorPathHttpBin(RouteLocatorBuilder builder, ObjectMapper mapper) {
         return builder.routes()
                 .route("pilot", p -> p.path("/get_httpbin")
-                        .filters(myFilters.andThen(spec -> changeHttpBin.apply(spec))
+                        .filters(myFilters.andThen(spec -> modififyResponseFromHttpBin.apply(spec))
                                 .andThen(spec -> spec.setPath("/get")))
                         .uri("https://httpbin.org"))
                 .build();
@@ -63,7 +63,7 @@ public class RouteConfig {
     public RouteLocator routeLocatorPathLocalData(RouteLocatorBuilder builder, ObjectMapper mapper) {
         return builder.routes()
                 .route("pilot", p -> p.path("/posts")
-                        .filters(sessionFilters.andThen(spec -> changeHttpBin.apply(spec))
+                        .filters(sessionFilters.andThen(spec -> modififyResponseFromHttpBin.apply(spec))
                                 .andThen(spec -> spec.setPath("/posts/{SESSION_ID}")))
                         .uri("http://127.0.0.1:3000"))
                 .build();
@@ -73,7 +73,7 @@ public class RouteConfig {
     public RouteLocator routeLocatorPathLocalController(RouteLocatorBuilder builder, ObjectMapper mapper) {
         return builder.routes()
                 .route("posts", p -> p.path("/local/posts")
-                        .filters(sessionFilters.andThen(spec -> changeHttpBin.apply(spec))
+                        .filters(sessionFilters.andThen(spec -> modififyResponseFromHttpBin.apply(spec))
                                 .andThen(spec -> spec.setPath("/local/posts")))
                         .uri("http://127.0.0.1:3000"))
                 .build();
@@ -85,9 +85,33 @@ public class RouteConfig {
                 .route("play", p -> p.method(GET)
                         .and()
                         .path("/play")
-                        .filters(sessionFilters.andThen(sessionPlayFilter).andThen(spec -> changeHttpBin.apply(spec))
+                        .filters(sessionFilters.andThen(sessionPlayFilter)
+                                .andThen(spec -> modififyResponseFromHttpBin.apply(spec))
                                 .andThen(spec -> spec.setPath("/get")))
                         .uri("https://httpbin.org"))
+                .build();
+    }
+
+    //http://httpstat.us/
+    @Bean
+    public RouteLocator routeLocatorHttpstat(RouteLocatorBuilder builder, ObjectMapper mapper) {
+
+        UnaryOperator<GatewayFilterSpec> addHeaders = spec ->
+                spec.addRequestHeader("X-HttpStatus-Response-Foo", "bar");
+
+        UnaryOperator<GatewayFilterSpec> addSleep = spec ->
+                spec.addRequestParameter("sleep", "1000");
+
+        return builder.routes()
+                .route("httpstat", p -> p.method(GET)
+                        .and()
+                        .path("/httpstat")
+                        .filters(sessionFilters.andThen(sessionPlayFilter)
+                                .andThen(spec -> modififyResponseFromHttpBin.apply(spec))
+                                .andThen(addSleep)
+                                .andThen(addHeaders)
+                                .andThen(spec -> spec.setPath("/random/200,201,500-504")))
+                        .uri("https://httpstat.us"))
                 .build();
     }
 }
