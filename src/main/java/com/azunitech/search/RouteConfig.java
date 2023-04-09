@@ -72,7 +72,9 @@ public class RouteConfig {
     @Bean
     public RouteLocator routeLocatorPathLocalController(RouteLocatorBuilder builder, ObjectMapper mapper) {
         return builder.routes()
-                .route("posts", p -> p.path("/local/posts")
+                .route("posts", p -> p.method(GET)
+                        .and()
+                        .path("/local/posts")
                         .filters(sessionFilters.andThen(spec -> modififyResponseFromHttpBin.apply(spec))
                                 .andThen(spec -> spec.setPath("/local/posts")))
                         .uri("http://127.0.0.1:3000"))
@@ -104,6 +106,8 @@ public class RouteConfig {
 
         return builder.routes()
                 .route("httpstat", p -> p.method(GET)
+                        .and()
+                        .method(GET)
                         .and()
                         .path("/httpstat")
                         .filters(sessionFilters.andThen(sessionPlayFilter)

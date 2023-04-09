@@ -1,13 +1,11 @@
 package com.azunitech.search.web.apis;
 
-import com.azunitech.search.web.models.User;
+import com.azunitech.search.domain.User;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
-
-import javax.websocket.server.PathParam;
 
 @Log4j2
 @RestController
