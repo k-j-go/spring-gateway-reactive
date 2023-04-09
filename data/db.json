@@ -1,0 +1,38 @@
+{
+  "posts": [
+    {
+      "id": 1,
+      "title": "title 13",
+      "author": "author 13"
+    },
+    {
+      "id": 2,
+      "title": "Sleep the Brave",
+      "author": "Cassatt"
+    }
+  ],
+  "comments": [],
+  "profiles": [
+    {
+      "id": 101,
+      "name": "post1",
+      "postId": 1
+    },
+    {
+      "id": 102,
+      "name": "post2",
+      "postId": 2
+    },
+    {
+      "id": 103,
+      "name": "post2",
+      "postId": 2
+    },
+    {
+      "id": 104,
+      "name": "post2",
+      "postId": 2
+    }
+
+  ]
+}
